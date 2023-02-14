@@ -13,25 +13,19 @@ public class QuizService : IQuizService<QuestionDTO, QuizResponse>
         _repository = repository;
     }
 
-    public async Task<IEnumerable<QuestionModel>> GetQuestions(QuizResponse response)
+    public async Task<IEnumerable<QuestionModel>> GetQuestions(QuizResponse response, string difficulty, int number)
     {
         foreach (var question in response.Results)
         {
             await Add(question);
         }
 
-        return await _repository.GetAllQuestions();
-    }
-
-    public async Task<bool> CheckExists(QuestionDTO item)
-    {
-        var allQuestions = await _repository.GetAllQuestions();
-        return allQuestions.Any(q => q.Statement == item.Statement);
+        return await _repository.GetQuestions(difficulty, number);
     }
 
     public async Task Add(QuestionDTO item)
     {
-        if (await CheckExists(item))
+        if (await _repository.HasQuestion(item.Statement))
         {
             return;
         }

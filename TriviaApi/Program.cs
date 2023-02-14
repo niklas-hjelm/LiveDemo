@@ -18,12 +18,12 @@ app.MapGet("/getQuestions", async () =>
     return await response.Content.ReadAsStringAsync();
 });
 
-app.MapGet("/getQuestionsTyped", async (IQuizService<QuestionDTO, QuizResponse> quizService) =>
+app.MapGet("/getQuestionsTyped/{difficulty}", async (IQuizService<QuestionDTO, QuizResponse> quizService, string difficulty, int number) =>
 {
     var client = new HttpClient();
-    var response = await client.GetAsync("https://opentdb.com/api.php?amount=10&difficulty=easy");
+    var response = await client.GetAsync($"https://opentdb.com/api.php?amount={number}&difficulty={difficulty}");
     var quizResponse = await response.Content.ReadFromJsonAsync<QuizResponse>();
-    return await quizService.GetQuestions(quizResponse);
+    return await quizService.GetQuestions(quizResponse, difficulty, number);
 });
 
 

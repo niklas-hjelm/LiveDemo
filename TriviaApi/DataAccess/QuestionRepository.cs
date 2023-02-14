@@ -1,4 +1,6 @@
-﻿using MongoDB.Driver;
+﻿using Amazon.Auth.AccessControlPolicy;
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 using TriviaApi.DataAccess.Models;
 
 namespace TriviaApi.DataAccess;
@@ -30,5 +32,37 @@ public class QuestionRepository : IQuestionRepository
         var allQuestions = 
             await _questionCollection.FindAsync(_ => true);
         return allQuestions.ToEnumerable();
+    }
+
+    public async Task<IEnumerable<QuestionModel>> GetQuestions(string difficulty, int number)
+    {
+        var filter = Builders<QuestionModel>.Filter.Eq("Difficulty", difficulty);
+        var count = await _questionCollection.CountDocumentsAsync(filter);
+        var results = new List<QuestionModel>();
+
+        var rand = new Random();
+
+        while (results.Count < number)
+        {
+            var index = rand.Next((int) count);
+            var question = _questionCollection.Find(filter).Skip(index).FirstOrDefault();
+
+            if (results.Any(q=>q.Statement.Equals(question.Statement)))
+            {
+                continue;
+            }
+
+            results.Add(question);
+        }
+
+        return results;
+    }
+
+    public async Task<bool> HasQuestion(string statement)
+    {
+        var filter = Builders<QuestionModel>.Filter.Eq("Statement", statement);
+        var exists = await _questionCollection.FindAsync(filter);
+
+        return exists is not null && exists.ToList().Count > 0;
     }
 }
