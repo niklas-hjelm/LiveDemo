@@ -42,7 +42,7 @@ public class QuestionRepository : IQuestionRepository
         if (count < number)
         {
             var all = await _questionCollection.FindAsync(filter);
-            //TODO: 1
+
             return all.ToEnumerable();
         }
 
