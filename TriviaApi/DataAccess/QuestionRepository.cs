@@ -38,19 +38,21 @@ public class QuestionRepository : IQuestionRepository
     {
         var filter = Builders<QuestionModel>.Filter.Eq("Difficulty", difficulty);
         var count = await _questionCollection.CountDocumentsAsync(filter);
-        var results = new List<QuestionModel>();
 
+        if (count < number)
+        {
+            var all = await _questionCollection.FindAsync(filter);
+            //TODO: 1
+            return all.ToEnumerable();
+        }
+
+        var results = new HashSet<QuestionModel>(new QuestionEqualityComparer());
         var rand = new Random();
 
         while (results.Count < number)
         {
             var index = rand.Next((int) count);
             var question = _questionCollection.Find(filter).Skip(index).FirstOrDefault();
-
-            if (results.Any(q=>q.Statement.Equals(question.Statement)))
-            {
-                continue;
-            }
 
             results.Add(question);
         }
